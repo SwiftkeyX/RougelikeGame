@@ -1,0 +1,128 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+
+// Context for all the state class 
+public class PlayerStateMachine : MonoBehaviour
+{
+    // dependency
+    private PlayerInputAction _playerInputAction;
+    private CharacterController _characterController;
+    private Animator _animator;
+
+    // input
+    private Vector2 _currentMovementInput;
+    private Vector3 _currentMovement;
+    private bool _isMovementPressed;
+    private bool _isRunPressed;
+
+    // _animator var
+    private int _isWalkingHash;
+    private int _isRunningHash;
+
+    // movement value
+    private float _rotationPerFrame = 15f;
+    private float _walkSpeedPerFrame = 2f;
+    private float _runSpeedPerFrame = 4.5f;
+
+    // state
+    private PlayerStateFactory _factory;
+    private PlayerBaseState _currentState;
+
+    // getter and setter
+    public PlayerBaseState CurrentState { get { return _currentState; } set { _currentState = value; } }
+    public CharacterController CharacterController { get { return _characterController; } }
+    public Animator Animator { get { return _animator; } }
+    public float CurrentMovementX { get { return _currentMovement.x; } set { _currentMovement.x = value; } }
+    public float CurrentMovementY { get { return _currentMovement.y; } set { _currentMovement.y = value; } }
+    public float CurrentMovementZ { get { return _currentMovement.z; } set { _currentMovement.z = value; } }
+    public float CurrentMovementInputX { get { return _currentMovementInput.x; } }
+    public float CurrentMovementInputY { get { return _currentMovementInput.y; } }
+    public bool IsMovementPressed { get { return _isMovementPressed; } }
+    public bool IsRunPressed { get { return _isRunPressed; } }
+    public int IsWalkingHash { get { return _isWalkingHash; } }
+    public int IsRunningHash { get { return _isRunningHash; } }
+
+
+    void Awake()
+    {
+        // Initial dependency
+        _playerInputAction = new PlayerInputAction();
+        _characterController = GetComponent<CharacterController>();
+        _animator = GetComponent<Animator>();
+
+        // Initial State
+        _factory = new PlayerStateFactory(this);
+        _currentState = _factory.Grounded();
+        _currentState.EnterState();
+
+        // Initial _animator variable
+        _isWalkingHash = Animator.StringToHash("isWalking");
+        _isRunningHash = Animator.StringToHash("isRunning");
+
+        // set the player input callback
+        _playerInputAction.CharacterControl.Move.started += OnMovement;
+        _playerInputAction.CharacterControl.Move.canceled += OnMovement;
+        _playerInputAction.CharacterControl.Move.performed += OnMovement;
+        _playerInputAction.CharacterControl.Run.started += OnRun;
+        _playerInputAction.CharacterControl.Run.canceled += OnRun;
+    }
+
+    void Start()
+    {
+
+    }
+
+    void Update()
+    {
+        HandleMove();
+        HandleRotation();
+        _currentState.UpdateStates();
+        Debug.Log("current State is" + _currentState);
+    }
+
+    private void HandleMove()
+    {
+        if (_isRunPressed) _characterController.Move(_currentMovement * _runSpeedPerFrame * Time.deltaTime);
+        else _characterController.Move(_currentMovement * _walkSpeedPerFrame * Time.deltaTime);
+    }
+
+    private void HandleRotation()
+    {
+        Vector3 positionToLookAt;
+        positionToLookAt.x = _currentMovement.x;
+        positionToLookAt.y = 0;
+        positionToLookAt.z = _currentMovement.z;
+
+        Quaternion currentRotation = transform.rotation;
+        Quaternion targetRotation = Quaternion.LookRotation(positionToLookAt);
+
+        if (_isMovementPressed) transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, _rotationPerFrame * Time.deltaTime);
+    }
+
+    void OnEnable()
+    {
+        _playerInputAction.Enable();
+    }
+
+    void OnDisable()
+    {
+        _playerInputAction.Disable();
+    }
+
+    // ---------------------------- Callback function for Input button -----------------------------------
+    private void OnMovement(InputAction.CallbackContext ctx)
+    {
+        _currentMovementInput = ctx.ReadValue<Vector2>();
+
+        _isMovementPressed = _currentMovementInput.x != 0 || _currentMovementInput.y != 0;
+    }
+
+    private void OnRun(InputAction.CallbackContext ctx)
+    {
+        _isRunPressed = ctx.ReadValueAsButton();
+    }
+
+
+
+}

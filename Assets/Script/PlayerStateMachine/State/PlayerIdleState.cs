@@ -1,0 +1,30 @@
+using UnityEngine;
+
+public class PlayerIdleState : PlayerBaseState
+{
+    public PlayerIdleState(PlayerStateMachine ctx, PlayerStateFactory playerStateFactory)
+    : base(ctx, playerStateFactory)
+    {
+        _isRoot = false;
+    }
+
+    public override void EnterState()
+    {
+        _ctx.Animator.SetBool(_ctx.IsWalkingHash, false);
+        _ctx.Animator.SetBool(_ctx.IsRunningHash, false);
+    }
+    public override void UpdateState()
+    {
+        CheckSwitchState();
+        _ctx.CurrentMovementX = 0f;
+        _ctx.CurrentMovementZ = 0f;
+    }
+    public override void ExitState() { }
+    public override void CheckSwitchState()
+    {
+        if (_ctx.IsMovementPressed && !_ctx.IsRunPressed) SwitchState(_factory.Walk());
+
+        if (_ctx.IsMovementPressed && _ctx.IsRunPressed) SwitchState(_factory.Run());
+    }
+    public override void InitializeSubState() { }
+}
