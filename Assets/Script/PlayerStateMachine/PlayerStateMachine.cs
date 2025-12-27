@@ -78,7 +78,7 @@ public class PlayerStateMachine : MonoBehaviour
         HandleMove();
         HandleRotation();
         _currentState.UpdateStates();
-        Debug.Log("current State is" + _currentState);
+        // Debug.Log("current State is" + _currentState);
     }
 
     private void HandleMove()
