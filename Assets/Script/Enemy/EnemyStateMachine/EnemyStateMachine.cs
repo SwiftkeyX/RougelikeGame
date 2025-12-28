@@ -1,7 +1,5 @@
-using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.TextCore.Text;
 
 /// <summary>
 /// Hold the context for overall enemy's statemachine  
@@ -15,24 +13,24 @@ public class EnemyStateMachine : MonoBehaviour
     private NavMeshAgent _agent;
     private Transform _playerTransform;
     private EnemyStateFactory _factory;
+    private StateMachineHelper _helper;
+    private EnemyStat _stat;
 
     // statemachine
     private EnemyBaseState _currentState;
 
-    // helper
-    private StateMachineHelper _helper;
+    // agent var
+    private bool _isAgentStop;
 
     // movement
     private Vector3 _currentMovement;
-    private float _speedPerFrame = 0.5f;
-    private float _rotationPerFrame = 15f;
-
+    
     // grounded state
     public float _minimalJumpTime = 0.5f; // this is GroundedBuffer (prevent state's change from Grounded to Jump every frame)
     private float _lastGroundedTime;
 
-    // observe state
-    private float _minimumObserveTime = 3f;
+    // combat var
+    private bool _attackEnd;
 
     // room var
     public bool _detectPlayer;
@@ -43,8 +41,8 @@ public class EnemyStateMachine : MonoBehaviour
     int _isForwardWalkingHash;
     int _isLeftWalkingHash;
     int _isRightWalkingHash;
-    int _isJumpingHash;
-    int _isAttackingHash;
+    int _isJumpHash;
+    int _isAttackHash;
 
     // getter and setter
     public EnemyBaseState CurrentState { get { return _currentState; } set { _currentState = value; } }
@@ -63,24 +61,27 @@ public class EnemyStateMachine : MonoBehaviour
     public int IsForwardWalkingHash { get { return _isForwardWalkingHash; } }
     public int IsLeftWalkingHash { get { return _isLeftWalkingHash; } }
     public int IsRightWalkingHash { get { return _isRightWalkingHash; } }
-    public int IsJumpingHash { get { return _isJumpingHash; } }
-    public int isAttackingHash { get { return _isAttackingHash; } }
+    public int IsJumpHash { get { return _isJumpHash; } }
+    public int IsAttackHash { get { return _isAttackHash; } }
     public bool Alert { get { return _alert; } set { _alert = value; } }
     public bool DetectPlayer { get { return _detectPlayer; } }
     public float MinimalJumpTime { get { return _minimalJumpTime; } }
     public float LastGroundedTime { get { return _lastGroundedTime; } set { _lastGroundedTime = value; } }
-    public float MinimumObserveTime { get { return _minimumObserveTime; } }
+    public float AttackRange { get { return _stat.AttackRange; } }
+    public bool AttackEnd { get { return _attackEnd; } set { _attackEnd = value; } }
+    public bool IsAgentStop { get { return _isAgentStop; } set { _isAgentStop = value; } }
 
 
     void Awake()
     {
-         // Initial dependency
+        // Initial dependency
         _brain = new Brain();
         _factory = new EnemyStateFactory(this);
         _characterController = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
         _agent = GetComponent<NavMeshAgent>();
         _helper = new StateMachineHelper(this);
+        _stat = GetComponent<EnemyStat>();
 
         // get player transform
         _playerTransform = GameObject.FindWithTag("Player").transform;
@@ -90,14 +91,15 @@ public class EnemyStateMachine : MonoBehaviour
         _isForwardWalkingHash = Animator.StringToHash("isForwardWalking");
         _isLeftWalkingHash = Animator.StringToHash("isLeftWalking");
         _isRightWalkingHash = Animator.StringToHash("isRightWalking");
-        _isJumpingHash = Animator.StringToHash("isJumping");
-        _isAttackingHash = Animator.StringToHash("isAttacking");
+        _isJumpHash = Animator.StringToHash("isJump");
+        _isAttackHash = Animator.StringToHash("isAttack");
+
     }
 
     void Start()
     {
         // Initial state machine
-        _currentState = _factory.Grounded();
+        _currentState = _factory.Initial();
 
         // close agent's movement (let ONLY characterController control the movement)
         // only agent purpose in this project is to PathFinding
@@ -110,16 +112,16 @@ public class EnemyStateMachine : MonoBehaviour
 
     void Update()
     {
-        _characterController.Move(_currentMovement * _speedPerFrame * Time.deltaTime);
+        _characterController.Move(_currentMovement * _stat.SpeedPerFrame * Time.deltaTime);
         HandleRotation();
         _currentState.UpdateStates();
 
-        // test  
-        Debug.Log(
-            "FirstState: " + _currentState +
-            " SecondState: " + (_currentState?.CurrentSubState?.ToString() ?? "null") +
-            " ThirdState: " + (_currentState?.CurrentSubState?.CurrentSubState?.ToString() ?? "null")
-        );
+        // // test  
+        // Debug.Log(
+        //     "FirstState: " + _currentState +
+        //     " SecondState: " + (_currentState?.CurrentSubState?.ToString() ?? "null") +
+        //     " ThirdState: " + (_currentState?.CurrentSubState?.CurrentSubState?.ToString() ?? "null")
+        // );
         // Debug.Log("CurrentMovementY: " + CurrentMovementY);
     }
 
@@ -130,10 +132,17 @@ public class EnemyStateMachine : MonoBehaviour
         positionToLookAt.y = 0;
         positionToLookAt.z = _currentMovement.z;
 
+        // LookRotation() can't receive zero vector, so we validate it first 
+        if (positionToLookAt.sqrMagnitude < 0.0001f) return;
+
         Quaternion currentRotation = transform.rotation;
         Quaternion targetRotation = Quaternion.LookRotation(positionToLookAt);
 
         // if (_isMovementPressed) 
-        transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, _rotationPerFrame * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, _stat.RotationPerFrame * Time.deltaTime);
     }
+
+    // Event Handler (Behaviour script attach to Attack State)
+    public void OnAttackStart() => _attackEnd = false;
+    public void OnAttackFinish() => _attackEnd = true;
 }

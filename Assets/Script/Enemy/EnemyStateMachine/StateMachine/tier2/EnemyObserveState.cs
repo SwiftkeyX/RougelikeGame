@@ -9,12 +9,12 @@ public class EnemyObserveState : EnemyBaseState
     public EnemyObserveState(EnemyStateMachine ctx, EnemyStateFactory factory) : base(ctx, factory)
     {
         _order = Order.SECOND;
-        InitializeSubState();
     }
 
     public override void EnterState()
     {
         _onEnterObserveTime = Time.time;
+
     }
     public override void UpdateState()
     {
@@ -28,7 +28,9 @@ public class EnemyObserveState : EnemyBaseState
     }
     public override void CheckSwitchState()
     {
-        if (_ctx.DetectPlayer) SwitchState(_ctx.Factory.Chase());
+        if (_ctx.DetectPlayer && _ctx.Helper.PlayerInRange()) SwitchState(_ctx.Factory.Attack());
+
+        else if (_ctx.DetectPlayer) SwitchState(_ctx.Factory.Chase());
     }
     public override void InitializeSubState()
     {

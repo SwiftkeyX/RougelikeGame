@@ -5,7 +5,6 @@ public class EnemyGroundedState : EnemyBaseState
     public EnemyGroundedState(EnemyStateMachine ctx, EnemyStateFactory factory) : base(ctx, factory)
     {
         _order = Order.FIRST;
-        InitializeSubState();
     }
 
     public override void EnterState()
@@ -30,11 +29,9 @@ public class EnemyGroundedState : EnemyBaseState
     }
     public override void InitializeSubState()
     {
-        // if (!_ctx.DetectPlayer) SetSubState(_ctx.Factory.Idle());
+        if (_ctx.DetectPlayer) { SetSubState(_ctx.Factory.Chase()); }
 
-        // else SetSubState(_ctx.Factory.Chase());
-
-        SetSubState(_ctx.Factory.Observe());
+        else SetSubState(_ctx.Factory.Observe());
     }
 
     private bool GroundedBuffer()

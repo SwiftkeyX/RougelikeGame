@@ -94,6 +94,9 @@ public class PlayerStateMachine : MonoBehaviour
         positionToLookAt.y = 0;
         positionToLookAt.z = _currentMovement.z;
 
+        // LookRotation() can't receive zero vector, so we validate it first 
+        if (positionToLookAt.sqrMagnitude < 0.0001f) return;
+
         Quaternion currentRotation = transform.rotation;
         Quaternion targetRotation = Quaternion.LookRotation(positionToLookAt);
 

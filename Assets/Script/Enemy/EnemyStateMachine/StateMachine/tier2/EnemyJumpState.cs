@@ -7,6 +7,7 @@ public class EnemyJumpState : EnemyBaseState
 
     public override void EnterState()
     {
+        
     }
     public override void UpdateState()
     {

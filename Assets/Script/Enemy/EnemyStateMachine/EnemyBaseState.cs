@@ -19,6 +19,13 @@ public abstract class EnemyBaseState
         this._factory = enemyStateFactory;
     }
 
+    public void Initial() => OnEnter();
+
+    private void OnEnter()
+    {
+        EnterState();
+        InitializeSubState();
+    }
     public abstract void EnterState();
     public abstract void UpdateState();
     public abstract void ExitState();
@@ -32,25 +39,19 @@ public abstract class EnemyBaseState
     }
     protected void SwitchState(EnemyBaseState newState)
     {
-        ExitState();
+        if (_order != newState._order) { Debug.Log("Cant assign Lower State's tier to Higher one=>" + " current: " + this._order + " new: " + newState._order); return; }
 
-        newState.EnterState();
-
-        /// switch current state of the Context
-        // switch same tier's state
         if (_order == newState._order && _order == Order.FIRST)
         {
-            _ctx.CurrentState = newState;
+            SetRootState(newState);
         }
+
         else if (_order == newState._order)
         {
             _currentSuperState.SetSubState(newState);
         }
-        else
-        {
-            Debug.Log("Cant assign Lower State's tier to Higher one=>" + " current: " + this._order + " new: " + newState._order);
-        }
     }
+
     private void SetSuperState(EnemyBaseState newState)
     {
         if (newState._order != this._order - 1) { Debug.Log("Can't set superState"); return; }
@@ -63,7 +64,9 @@ public abstract class EnemyBaseState
         // Only allow newState's order to be lower equal to 1
         if (newState._order != this._order + 1) { Debug.Log("Can't set subState"); return; }
 
-        /// exit all previous SubState before setting new SubState
+        Debug.Log("set sub-state's state from " + this._currentSubState + " to " + newState);
+
+        // first: Exit all sub-state (dont include itself)
         EnemyBaseState state = this;
         while (state.CurrentSubState != null)
         {
@@ -71,11 +74,30 @@ public abstract class EnemyBaseState
             state.ExitState();
         }
 
-        // enter new state
-        newState.EnterState();
+        // second: Enter new-state and its sub-state (other sub-state will be initial in InitializeSubState() after we Enter here)
+        newState.OnEnter();
 
         // set subState to new state 
         _currentSubState = newState;
         _currentSubState.SetSuperState(this);
+    }
+
+    protected void SetRootState(EnemyBaseState newState)
+    {
+        // first: Exit all sub-state include itself
+        EnemyBaseState state = this;
+        while (state != null)
+        {
+            state.ExitState();
+            state = state.CurrentSubState;
+        }
+
+        // second: Enter new-state and its sub-state (other sub-state will be initial in InitializeSubState() after we Enter here)
+        newState.OnEnter();
+
+        // tell context that we change root's state
+        Debug.Log("set root's state from " + this + " to " + newState);
+        _ctx.CurrentState = newState;
+
     }
 }

@@ -5,13 +5,13 @@ public class EnemyChaseState : EnemyBaseState
     public EnemyChaseState(EnemyStateMachine ctx, EnemyStateFactory factory) : base(ctx, factory)
     {
         _order = Order.SECOND;
-        InitializeSubState();
+
     }
 
     public override void EnterState()
     {
         _ctx.Animator.SetBool(_ctx.IsWalkingHash, true);
-
+        _ctx.Helper.StartAgent();
     }
     public override void UpdateState()
     {
@@ -26,7 +26,9 @@ public class EnemyChaseState : EnemyBaseState
     }
     public override void CheckSwitchState()
     {
-        if (!_ctx.DetectPlayer) SwitchState(_ctx.Factory.Observe());
+        if (_ctx.DetectPlayer && _ctx.Helper.PlayerInRange()) SwitchState(_ctx.Factory.Attack());
+
+        else if (!_ctx.DetectPlayer) SwitchState(_ctx.Factory.Observe());
     }
     public override void InitializeSubState()
     {

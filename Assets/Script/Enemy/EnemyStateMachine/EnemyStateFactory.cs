@@ -7,6 +7,14 @@ public class EnemyStateFactory
         this._ctx = context;
     }
 
+    // ==================== Initial =====================
+    public EnemyBaseState Initial()
+    {
+        EnemyBaseState newState = new EnemyGroundedState(_ctx, this);
+        newState.Initial();
+        return newState;
+    }
+
     // ===================== TIER 1 =====================
     public EnemyBaseState Grounded()
     {

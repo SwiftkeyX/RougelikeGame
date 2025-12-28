@@ -5,7 +5,6 @@ public class EnemyAirborneState : EnemyBaseState
     public EnemyAirborneState(EnemyStateMachine ctx, EnemyStateFactory factory) : base(ctx, factory)
     {
         _order = Order.FIRST;
-        InitializeSubState();
     }
 
     public override void EnterState()

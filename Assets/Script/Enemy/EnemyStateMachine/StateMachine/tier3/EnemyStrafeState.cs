@@ -15,6 +15,7 @@ public class EnemyStrafeState : EnemyBaseState
         if (Random.Range(0, 1f) > 0.5f) _ctx.Animator.SetBool(_ctx.IsLeftWalkingHash, true);
 
         else _ctx.Animator.SetBool(_ctx.IsRightWalkingHash, true);
+
     }
     public override void UpdateState()
     {
@@ -25,6 +26,8 @@ public class EnemyStrafeState : EnemyBaseState
         _ctx.Animator.SetBool(_ctx.IsWalkingHash, false);
         _ctx.Animator.SetBool(_ctx.IsLeftWalkingHash, false);
         _ctx.Animator.SetBool(_ctx.IsRightWalkingHash, false);
+
+        _ctx.Helper.PreventSlide();
     }
     public override void CheckSwitchState()
     {

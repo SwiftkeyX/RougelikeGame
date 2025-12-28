@@ -5,13 +5,13 @@ public class EnemyForwardWalkState : EnemyBaseState
     public EnemyForwardWalkState(EnemyStateMachine ctx, EnemyStateFactory factory) : base(ctx, factory)
     {
         _order = Order.THIRD;
-        InitializeSubState();
     }
 
     public override void EnterState()
     {
         _ctx.Animator.SetBool(_ctx.IsWalkingHash, true);
         _ctx.Animator.SetBool(_ctx.IsForwardWalkingHash, true);
+
     }
     public override void UpdateState()
     {
@@ -21,6 +21,9 @@ public class EnemyForwardWalkState : EnemyBaseState
     {
         _ctx.Animator.SetBool(_ctx.IsWalkingHash, false);
         _ctx.Animator.SetBool(_ctx.IsForwardWalkingHash, false);
+
+        _ctx.Helper.StopAgent();
+        _ctx.Helper.PreventSlide();
     }
     public override void CheckSwitchState() { }
     public override void InitializeSubState()
