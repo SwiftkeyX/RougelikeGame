@@ -18,13 +18,11 @@ public class PlayerStateMachine : MonoBehaviour
     private bool _isRunPressed;
 
     // _animator var
-    private int _isWalkingHash;
-    private int _isRunningHash;
+    private int _isMovingHash;
 
     // movement value
     private float _rotationPerFrame = 15f;
-    private float _walkSpeedPerFrame = 2f;
-    private float _runSpeedPerFrame = 4.5f;
+    private float _moveSpeedPerFrame = 4f;
 
     // state
     private PlayerStateFactory _factory;
@@ -42,8 +40,7 @@ public class PlayerStateMachine : MonoBehaviour
     public float CurrentMovementInputY { get { return _currentMovementInput.y; } }
     public bool IsMovementPressed { get { return _isMovementPressed; } }
     public bool IsRunPressed { get { return _isRunPressed; } }
-    public int IsWalkingHash { get { return _isWalkingHash; } }
-    public int IsRunningHash { get { return _isRunningHash; } }
+    public int IsMovingHash { get { return _isMovingHash; } }
 
 
     void Awake()
@@ -60,15 +57,12 @@ public class PlayerStateMachine : MonoBehaviour
         _currentState.EnterState();
 
         // Initial _animator variable
-        _isWalkingHash = Animator.StringToHash("isWalking");
-        _isRunningHash = Animator.StringToHash("isRunning");
+        _isMovingHash = Animator.StringToHash("isMoving");
 
         // set the player input callback
         _playerInputAction.CharacterControl.Move.started += OnMovement;
         _playerInputAction.CharacterControl.Move.canceled += OnMovement;
         _playerInputAction.CharacterControl.Move.performed += OnMovement;
-        _playerInputAction.CharacterControl.Run.started += OnRun;
-        _playerInputAction.CharacterControl.Run.canceled += OnRun;
     }
 
     void Start()
@@ -86,8 +80,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     private void HandleMove()
     {
-        if (_isRunPressed) _characterController.Move(_currentMovement * _runSpeedPerFrame * Time.deltaTime);
-        else _characterController.Move(_currentMovement * _walkSpeedPerFrame * Time.deltaTime);
+        _characterController.Move(_currentMovement * _moveSpeedPerFrame * Time.deltaTime);
     }
 
     private void HandleRotation()
@@ -123,12 +116,5 @@ public class PlayerStateMachine : MonoBehaviour
 
         _isMovementPressed = _currentMovementInput.x != 0 || _currentMovementInput.y != 0;
     }
-
-    private void OnRun(InputAction.CallbackContext ctx)
-    {
-        _isRunPressed = ctx.ReadValueAsButton();
-    }
-
-
 
 }

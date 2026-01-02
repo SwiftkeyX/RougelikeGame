@@ -30,8 +30,6 @@ public class PlayerGroundedState : PlayerBaseState
     {
         if (!_ctx.IsMovementPressed) SetSubState(_factory.Idle());
 
-        if (_ctx.IsMovementPressed) SetSubState(_factory.Walk());
-
-        if (_ctx.IsMovementPressed && _ctx.IsRunPressed) SetSubState(_factory.Run());
+        if (_ctx.IsMovementPressed) SetSubState(_factory.Move());
     }
 }

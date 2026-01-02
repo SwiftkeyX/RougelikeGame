@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class PlayerWalkState : PlayerBaseState
+public class PlayerMoveState : PlayerBaseState
 {
-    public PlayerWalkState(PlayerStateMachine ctx, PlayerStateFactory playerStateFactory)
+    public PlayerMoveState(PlayerStateMachine ctx, PlayerStateFactory playerStateFactory)
     : base(ctx, playerStateFactory)
     {
         _isRoot = false;
@@ -10,8 +10,7 @@ public class PlayerWalkState : PlayerBaseState
 
     public override void EnterState()
     {
-        _ctx.Animator.SetBool(_ctx.IsWalkingHash, true);
-        _ctx.Animator.SetBool(_ctx.IsRunningHash, false);
+        _ctx.Animator.SetBool(_ctx.IsMovingHash, true);
     }
     public override void UpdateState()
     {
@@ -19,12 +18,13 @@ public class PlayerWalkState : PlayerBaseState
         _ctx.CurrentMovementX = _ctx.CurrentMovementInputX;
         _ctx.CurrentMovementZ = _ctx.CurrentMovementInputY;
     }
-    public override void ExitState() { }
+    public override void ExitState()
+    {
+        _ctx.Animator.SetBool(_ctx.IsMovingHash, false);
+    }
     public override void CheckSwitchState()
     {
         if (!_ctx.IsMovementPressed) SwitchState(_factory.Idle());
-
-        if (_ctx.IsMovementPressed && _ctx.IsRunPressed) SwitchState(_factory.Run());
     }
     public override void InitializeSubState() { }
 }

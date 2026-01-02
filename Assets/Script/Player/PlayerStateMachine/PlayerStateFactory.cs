@@ -12,14 +12,9 @@ public class PlayerStateFactory
         return new PlayerIdleState(_ctx, this);
     }
 
-    public PlayerBaseState Walk()
+    public PlayerBaseState Move()
     {
-        return new PlayerWalkState(_ctx, this);
-    }
-
-    public PlayerBaseState Run()
-    {
-        return new PlayerRunState(_ctx, this);
+        return new PlayerMoveState(_ctx, this);
     }
 
     public PlayerBaseState Grounded()

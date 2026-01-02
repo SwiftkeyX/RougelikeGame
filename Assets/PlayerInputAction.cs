@@ -99,15 +99,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Run"",
-                    ""type"": ""Button"",
-                    ""id"": ""79cb7436-2e15-44ba-8551-b89719df6f66"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -165,17 +156,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""52ce2e7e-a861-4df5-895d-0068a82ebda4"",
-                    ""path"": ""<Keyboard>/leftShift"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Run"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -185,7 +165,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
         // CharacterControl
         m_CharacterControl = asset.FindActionMap("CharacterControl", throwIfNotFound: true);
         m_CharacterControl_Move = m_CharacterControl.FindAction("Move", throwIfNotFound: true);
-        m_CharacterControl_Run = m_CharacterControl.FindAction("Run", throwIfNotFound: true);
     }
 
     ~@PlayerInputAction()
@@ -267,7 +246,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_CharacterControl;
     private List<ICharacterControlActions> m_CharacterControlActionsCallbackInterfaces = new List<ICharacterControlActions>();
     private readonly InputAction m_CharacterControl_Move;
-    private readonly InputAction m_CharacterControl_Run;
     /// <summary>
     /// Provides access to input actions defined in input action map "CharacterControl".
     /// </summary>
@@ -283,10 +261,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "CharacterControl/Move".
         /// </summary>
         public InputAction @Move => m_Wrapper.m_CharacterControl_Move;
-        /// <summary>
-        /// Provides access to the underlying input action "CharacterControl/Run".
-        /// </summary>
-        public InputAction @Run => m_Wrapper.m_CharacterControl_Run;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -316,9 +290,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
-            @Run.started += instance.OnRun;
-            @Run.performed += instance.OnRun;
-            @Run.canceled += instance.OnRun;
         }
 
         /// <summary>
@@ -333,9 +304,6 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
-            @Run.started -= instance.OnRun;
-            @Run.performed -= instance.OnRun;
-            @Run.canceled -= instance.OnRun;
         }
 
         /// <summary>
@@ -383,12 +351,5 @@ public partial class @PlayerInputAction: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMove(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Run" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnRun(InputAction.CallbackContext context);
     }
 }
