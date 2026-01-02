@@ -14,20 +14,29 @@ public class EnemyStateMachine : MonoBehaviour
     private Transform _playerTransform;
     private EnemyStateFactory _factory;
     private StateMachineHelper _helper;
-    private EnemyStat _stat;
+    private GizmoContext _gizmoContext;
+    [SerializeField] private EnemyStat _stat;
 
     // statemachine
     private EnemyBaseState _currentState;
+
+    // unity's layerMask
+    private LayerMask _groundLayer;
 
     // agent var
     private bool _isAgentStop;
 
     // movement
     private Vector3 _currentMovement;
-    
+
     // grounded state
     public float _minimalJumpTime = 0.5f; // this is GroundedBuffer (prevent state's change from Grounded to Jump every frame)
     private float _lastGroundedTime;
+    // Grounded Check Gizmo Var  
+    private Vector3 _sphereOrigin;
+    private float _groundedSphereRadius;
+    private float _groundCheckDistance;
+    private float _groundCheckStartOffset;
 
     // combat var
     private bool _attackEnd;
@@ -43,6 +52,7 @@ public class EnemyStateMachine : MonoBehaviour
     int _isRightWalkingHash;
     int _isJumpHash;
     int _isAttackHash;
+    int _attackID;
 
     // getter and setter
     public EnemyBaseState CurrentState { get { return _currentState; } set { _currentState = value; } }
@@ -51,6 +61,7 @@ public class EnemyStateMachine : MonoBehaviour
     public EnemyStateFactory Factory { get { return _factory; } }
     public Animator Animator { get { return _animator; } }
     public StateMachineHelper Helper { get { return _helper; } }
+    public EnemyStat EnemyStat { get { return _stat; } }
     public void AgentSetDes(Vector3 pos) { _agent.SetDestination(pos); }
     public Vector3 CalculatePath() { return _agent.desiredVelocity; }
     public void AgentUpdateCurrentPosition() { _agent.nextPosition = transform.position; }
@@ -63,14 +74,19 @@ public class EnemyStateMachine : MonoBehaviour
     public int IsRightWalkingHash { get { return _isRightWalkingHash; } }
     public int IsJumpHash { get { return _isJumpHash; } }
     public int IsAttackHash { get { return _isAttackHash; } }
+    public int AttackID { get { return _attackID; } }
     public bool Alert { get { return _alert; } set { _alert = value; } }
     public bool DetectPlayer { get { return _detectPlayer; } }
     public float MinimalJumpTime { get { return _minimalJumpTime; } }
     public float LastGroundedTime { get { return _lastGroundedTime; } set { _lastGroundedTime = value; } }
-    public float AttackRange { get { return _stat.AttackRange; } }
+    public float AttackRange { get { return 1f; } }
     public bool AttackEnd { get { return _attackEnd; } set { _attackEnd = value; } }
     public bool IsAgentStop { get { return _isAgentStop; } set { _isAgentStop = value; } }
-
+    public LayerMask GroundLayer { get { return _groundLayer; } }
+    public Vector3 SphereOrigin { get { return _sphereOrigin; } set { _sphereOrigin = value; } }
+    public float GroundCheckStartOffset { get { return _groundCheckStartOffset; } }
+    public float GroundedSphereRadius { get { return _groundedSphereRadius; } }
+    public float GroundCheckDistance { get { return _groundCheckDistance; } }
 
     void Awake()
     {
@@ -81,7 +97,7 @@ public class EnemyStateMachine : MonoBehaviour
         _animator = GetComponent<Animator>();
         _agent = GetComponent<NavMeshAgent>();
         _helper = new StateMachineHelper(this);
-        _stat = GetComponent<EnemyStat>();
+        _gizmoContext = GetComponent<GizmoContext>();
 
         // get player transform
         _playerTransform = GameObject.FindWithTag("Player").transform;
@@ -93,7 +109,21 @@ public class EnemyStateMachine : MonoBehaviour
         _isRightWalkingHash = Animator.StringToHash("isRightWalking");
         _isJumpHash = Animator.StringToHash("isJump");
         _isAttackHash = Animator.StringToHash("isAttack");
+        _attackID = Animator.StringToHash("attackID");
 
+        // layermask
+        _groundLayer = LayerMask.GetMask("Ground");
+
+        // Initial Ground Check var
+        InitialGroundedCheck();
+    }
+    
+    private void InitialGroundedCheck()
+    {
+        _groundCheckDistance = 0.2f;
+        _groundCheckStartOffset = 0.1f;
+        _groundedSphereRadius = _characterController.radius;
+        _sphereOrigin = transform.position + Vector3.up * _groundCheckStartOffset;
     }
 
     void Start()
@@ -101,8 +131,10 @@ public class EnemyStateMachine : MonoBehaviour
         // Initial state machine
         _currentState = _factory.Initial();
 
-        // close agent's movement (let ONLY characterController control the movement)
-        // only agent purpose in this project is to PathFinding
+        /// <summary>
+        /// close agent's movement (let ONLY characterController control the movement) 
+        /// only agent purpose in this project is to PathFinding
+        /// </summary>
         _agent.updatePosition = false;
         _agent.updateRotation = false;
 
@@ -145,4 +177,5 @@ public class EnemyStateMachine : MonoBehaviour
     // Event Handler (Behaviour script attach to Attack State)
     public void OnAttackStart() => _attackEnd = false;
     public void OnAttackFinish() => _attackEnd = true;
+
 }

@@ -26,7 +26,7 @@ public class EnemyCooldownState : EnemyBaseState
         // wait for cooldown time first
         if (currentTime - _enterCooldownTime >= _minimumCooldownTime)
         {
-            if (_ctx.Helper.PlayerInRange()) SwitchState(_ctx.Factory.Attack());
+            if (_ctx.DetectPlayer && _ctx.Helper.DesignWhichAttackToUse()) SwitchState(_ctx.Factory.Attack());
 
             else if (_ctx.DetectPlayer && !_ctx.Helper.PlayerInRange()) SwitchState(_ctx.Factory.Chase());
 

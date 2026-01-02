@@ -84,6 +84,8 @@ public abstract class EnemyBaseState
 
     protected void SetRootState(EnemyBaseState newState)
     {
+        if (newState._order != Order.FIRST) return;
+
         // first: Exit all sub-state include itself
         EnemyBaseState state = this;
         while (state != null)

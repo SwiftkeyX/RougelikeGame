@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class AttackBehaviour : StateMachineBehaviour
 {
-    private EnemyStateMachine _fsm;
+    [SerializeField] private EnemyStateMachine _fsm;
 
     // OnStateMachineEnter is called when the Animator enters a sub state machine
     // So attach this to sub-state not invidual state
