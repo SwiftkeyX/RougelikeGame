@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fba5813f266ae3469470efd53729e36, type: 3}
   m_Name: Stat_Alien
   m_EditorClassIdentifier: 
-  _currentHealth: 100
+  _currentHealth: 10
   _maxHealth: 100
   _enemyAttackdata: {fileID: 11400000, guid: 1a672e1c7c54cd343a6f78eb24297551, type: 2}
   _considerAttackRange: 12

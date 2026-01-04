@@ -22,6 +22,8 @@ public class PlayerIdleState : PlayerBaseState
     public override void CheckSwitchState()
     {
         if (_ctx.IsMovementPressed) SwitchState(_factory.Move());
+
+        else if (_ctx.IsAttackPressed) SwitchState(_factory.Attack());
     }
     public override void InitializeSubState() { }
 }

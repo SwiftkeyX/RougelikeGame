@@ -26,4 +26,9 @@ public class PlayerStateFactory
     {
         return new PlayerJumpState(_ctx, this);
     }
+
+    public PlayerBaseState Attack()
+    {
+        return new PlayerAttackState(_ctx, this);
+    }
 }

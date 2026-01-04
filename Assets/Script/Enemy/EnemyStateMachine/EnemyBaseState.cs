@@ -39,7 +39,11 @@ public abstract class EnemyBaseState
     }
     protected void SwitchState(EnemyBaseState newState)
     {
-        if (_order != newState._order) { Debug.Log("Cant assign Lower State's tier to Higher one=>" + " current: " + this._order + " new: " + newState._order); return; }
+        if (_order != newState._order)
+        {
+            // Debug.Log("Cant assign Lower State's tier to Higher one=>" + " current: " + this._order + " new: " + newState._order);
+            return;
+        }
 
         if (_order == newState._order && _order == Order.FIRST)
         {
@@ -54,7 +58,11 @@ public abstract class EnemyBaseState
 
     private void SetSuperState(EnemyBaseState newState)
     {
-        if (newState._order != this._order - 1) { Debug.Log("Can't set superState"); return; }
+        if (newState._order != this._order - 1)
+        {
+            // Debug.Log("Can't set superState");
+            return;
+        }
 
         _currentSuperState = newState;
     }
@@ -62,9 +70,13 @@ public abstract class EnemyBaseState
     protected void SetSubState(EnemyBaseState newState)
     {
         // Only allow newState's order to be lower equal to 1
-        if (newState._order != this._order + 1) { Debug.Log("Can't set subState"); return; }
+        if (newState._order != this._order + 1)
+        {
+            // Debug.Log("Can't set subState"); 
+            return;
+        }
 
-        Debug.Log("set sub-state's state from " + this._currentSubState + " to " + newState);
+        // Debug.Log("set sub-state's state from " + this._currentSubState + " to " + newState);
 
         // first: Exit all sub-state (dont include itself)
         EnemyBaseState state = this;
@@ -98,7 +110,7 @@ public abstract class EnemyBaseState
         newState.OnEnter();
 
         // tell context that we change root's state
-        Debug.Log("set root's state from " + this + " to " + newState);
+        // Debug.Log("set root's state from " + this + " to " + newState);
         _ctx.CurrentState = newState;
 
     }
