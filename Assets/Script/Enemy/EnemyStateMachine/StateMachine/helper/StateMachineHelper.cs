@@ -1,11 +1,14 @@
 using System.Collections;
 using UnityEngine;
-using System.Linq;
 
 
 public class StateMachineHelper
 {
     private EnemyStateMachine _ctx;
+    private ENEMYATTACKTYPE? _attackChoose;
+
+    // getter and setter
+    public ENEMYATTACKTYPE? AttackChoose { get { return _attackChoose; } }
 
     public StateMachineHelper(EnemyStateMachine ctx)
     {
@@ -44,12 +47,6 @@ public class StateMachineHelper
 
 
     /// =============================== combat ===============================
-    public bool PlayerInRange()
-    {
-        float distance = DistanceToPlayer();
-        return (distance <= _ctx.AttackRange);
-    }
-
     public float DistanceToPlayer()
     {
         return Vector3.Distance(_ctx.transform.position, _ctx.PlayerPosition);
@@ -79,16 +76,16 @@ public class StateMachineHelper
         if (playerDis > range.range || !_ctx.EnemyStat.IsFinishCooldown(ENEMYATTACKTYPE.RANGE)) { weight.RANGE = -1f; }
 
         // Design attack using weight
-        ENEMYATTACKTYPE? attackChoose = DesignByWeight(weight);
+        _attackChoose = DesignByWeight(weight);
 
         // in case, attack isn't choosed
-        if (attackChoose == null) return false;
+        if (_attackChoose == null) return false;
 
         // set attack on cooldown
-        if (attackChoose.HasValue) _ctx.StartCoroutine(CooldownPerAttackCoroutine(attackChoose.Value));
+        if (_attackChoose.HasValue) _ctx.StartCoroutine(CooldownPerAttackCoroutine());
 
         // set trigger below int to avoid Wrong attack trigger
-        _ctx.Animator.SetInteger(_ctx.AttackID, (int)attackChoose);
+        _ctx.Animator.SetInteger(_ctx.AttackID, (int)_attackChoose);
         _ctx.Animator.SetTrigger(_ctx.IsAttackHash);
 
         return true;
@@ -113,7 +110,7 @@ public class StateMachineHelper
         // choose attack base on random weight
         float random = Random.Range(0f, totalWeight);
         float currentWeight = 0f;
-        ENEMYATTACKTYPE attackChoose; // fallback
+        ENEMYATTACKTYPE _attackChoose; // fallback
         for (int i = 0; i < weightArray.Length; i++)
         {
             // -1 = that attack can't be choose
@@ -123,24 +120,32 @@ public class StateMachineHelper
 
             if (currentWeight >= random)
             {
-                attackChoose = (ENEMYATTACKTYPE)i;
+                _attackChoose = (ENEMYATTACKTYPE)i;
                 // Debug.Log("random: " + random + " currentWeight: " + currentWeight + " totalWeight: " + totalWeight);
-                return attackChoose;
+                return _attackChoose;
             }
         }
 
         return null;
     }
 
-    private IEnumerator CooldownPerAttackCoroutine(ENEMYATTACKTYPE attackChoose)
+    private IEnumerator CooldownPerAttackCoroutine()
     {
-        _ctx.EnemyStat.StartCooldown(attackChoose);
+        if (!_attackChoose.HasValue)
+            yield break;
 
-        while (!_ctx.EnemyStat.IsFinishCooldown(attackChoose))
+        ENEMYATTACKTYPE attack = _attackChoose.Value;
+
+        _ctx.EnemyStat.StartCooldown(attack);
+
+        while (!_ctx.EnemyStat.IsFinishCooldown(attack))
         {
-            _ctx.EnemyStat.TickCooldown(attackChoose);
+            _ctx.EnemyStat.TickCooldown(attack);
             yield return null;
         }
+
+        // reset _attackChoose after finish the cooldown (only if attack isn't changed)
+        if (attack == _attackChoose) _attackChoose = null;
     }
 
 

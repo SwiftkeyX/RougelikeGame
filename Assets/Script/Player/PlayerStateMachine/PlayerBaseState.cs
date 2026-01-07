@@ -45,6 +45,11 @@ public abstract class PlayerBaseState
 
     protected void SwitchState(PlayerBaseState newState)
     {
+        // also reset input pressed in ctx
+        // ,,,
+        _ctx.IsAttackPressed = false;
+        _ctx.IsRollPressed = false;
+
         // switch current state of the Context
         if (_isRoot)
         {
@@ -90,7 +95,11 @@ public abstract class PlayerBaseState
 
     protected void SetRootState(PlayerBaseState newState)
     {
-        if (this._currentSubState != null && this._currentSubState.GetType() == typeof(PlayerAttackState)) SetRootAndSendOverSubState(newState);
+        bool subStateIsAttack = this._currentSubState != null && (this._currentSubState.GetType() == typeof(PlayerAttackState));
+        bool subStateIsRoll = this._currentSubState != null && (this._currentSubState.GetType() == typeof(PlayerRollState));
+
+        if (subStateIsAttack || subStateIsRoll) SetRootAndSendOverSubState(newState);
+        
         else SetRootStateNormally(newState);
     }
 
@@ -120,6 +129,8 @@ public abstract class PlayerBaseState
     /// summary, 
     /// 1. we have to send attack state over from first root to second root
     /// 2. dont exitstate() attack early
+    /// additional,
+    /// now roll state can be send over too
     /// </summary>
     private void SetRootAndSendOverSubState(PlayerBaseState newState)
     {

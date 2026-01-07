@@ -1,18 +1,23 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "AttackComboBuffer", menuName = "SO/Weapon/AttackComboBuffer")]
-public class AttackComboBuffer : ScriptableObject
+public class WeaponAttackData : ScriptableObject
 {
     [SerializeField] private int animationName; // identify the animation clip to use (we have different attack base on the weapon ID)
-    [SerializeField] private AttackWindow[] attackWindows;
+    [SerializeField] private AttackData[] attackData;
 
     // getter and setter
-    public AttackWindow[] AttackWindows { get { return attackWindows; } }
+    public AttackData[] AttackDatas { get { return attackData; } }
 }
 
 [System.Serializable]
-public struct AttackWindow
+public class AttackData
 {
-    public float start;
-    public float end;
+    // put 0 if no chain 
+    public float chainStart;
+    public float chainEnd;
+    // hitbox window
+    public float hitboxStart;
+    public float hitboxEnd;
+    // collider id
 }

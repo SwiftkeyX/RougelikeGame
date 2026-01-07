@@ -3,6 +3,7 @@ using UnityEngine;
 public class Weapon : MonoBehaviour
 {
     [SerializeField] private GameObject _weapon;
+    [SerializeField] private GameObject _currentWeapon;
 
     [Header("Weapon Holder")]
     [SerializeField] private Transform _weaponSocket;
@@ -10,17 +11,23 @@ public class Weapon : MonoBehaviour
 
     [Header("Weapon Stat")]
     [SerializeField] private float _attackDamage;
-    [SerializeField] private AttackComboBuffer _buffer;
+    [SerializeField] private WeaponAttackData _data;    // put "data" only when the Weapon is on the Player
 
-    private GameObject _currentWeapon;
+    [Header("Weapon Hitbox")]
+    private Hitbox _hitbox;
 
     // getter and setter
     public float AttackDamge { get { return _attackDamage; } }
-    public AttackComboBuffer Buffer { get { return _buffer; } }
+    public WeaponAttackData Data { get { return _data; } }
+    public GameObject WeaponObject { get { return _weapon; } }
+    public Hitbox Hitbox { get { return _hitbox; } }
 
-    void Start()
+    void Awake()
     {
-        EquipWeapon();
+        if (_currentWeapon == null) EquipWeapon();
+
+        // initial dependency
+        _hitbox = _currentWeapon.GetComponent<Hitbox>();   // get hitbox from the weapon gameobject
     }
 
     private void EquipWeapon()

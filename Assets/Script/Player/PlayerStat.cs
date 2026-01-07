@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerStat : MonoBehaviour
+public class PlayerStat : MonoBehaviour, IHealth
 {
     [SerializeField] private float _currentHealth;
     [SerializeField] private float _maxHealth;
@@ -12,5 +12,9 @@ public class PlayerStat : MonoBehaviour
     public float CurrentHealthPercentage { get { return _currentHealth / _maxHealth; } }
     public float BaseAttack { get { return _baseAttack; } }
 
-
+    // override
+    public void TakeDamage(float damage)
+    {
+        _currentHealth -= damage;
+    }
 }

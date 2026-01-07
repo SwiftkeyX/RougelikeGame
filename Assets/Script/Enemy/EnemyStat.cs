@@ -1,8 +1,7 @@
 using UnityEngine;
 using System.Linq;
 
-[CreateAssetMenu(fileName = "EnemyStat", menuName = "SO/Enemy/EnemyStat")]
-public class EnemyStat : ScriptableObject
+public class EnemyStat : MonoBehaviour, IHealth
 {
     // general
     [SerializeField] private float _currentHealth;
@@ -11,8 +10,6 @@ public class EnemyStat : ScriptableObject
     // combat
     [Header("Combat")]
     [SerializeField] private EnemyAttackData _enemyAttackdata;
-    [SerializeField] private float _considerAttackRange;
-    // private bool[] _currentCooldown = new bool[5] { false, false, false, false, false };
     private float[] _currentCooldown;
 
     // movement
@@ -26,7 +23,6 @@ public class EnemyStat : ScriptableObject
     public float SpeedPerFrame { get { return _speedPerFrame; } }
     public float RotationPerFrame { get { return _rotationPerFrame; } }
     public EnemyAttackType GetEnemyAttack(ENEMYATTACKTYPE type) => _enemyAttackdata.Get(type);
-    public float ConsiderAttackRange { get { return _considerAttackRange; } }
 
     /// <summary>
     /// Get and Set Cooldown of enemy's attack
@@ -61,7 +57,7 @@ public class EnemyStat : ScriptableObject
     /// <summary>
     /// Health related
     /// </summary>
-    public void TakeDamge(float damage)
+    public void TakeDamage(float damage)
     {
         this._currentHealth -= damage;
     }
@@ -71,14 +67,14 @@ public class EnemyStat : ScriptableObject
     }
 
     /// <summary>
-    /// because the cooldown is on SO, the SO will never reset itself even after we stop the play mode, 
+    /// => because the cooldown is on SO, the SO will never reset itself even after we stop the play mode, 
     /// so we reset cooldown manaully using OnEnable()
+    /// => we change EnemyStat from SO to Mono now, so this is no used anymore
+    /// but we will still kept it though, just in case future want to 
     /// </summary>
     private void OnEnable()
     {
         _currentCooldown = new float[5] { 0f, 0f, 0f, 0f, 0f };
-
-        Debug.Log("cooldown: " + string.Join(", ", _currentCooldown.Select(w => w.ToString())));
     }
 }
 

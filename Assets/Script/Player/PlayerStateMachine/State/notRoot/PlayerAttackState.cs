@@ -2,29 +2,38 @@ using UnityEditor.MPE;
 using UnityEngine;
 
 /// <summary>
-/// To make this work properly, we have to include the script "AttackWindpowBuffer.cs" correctly too
+/// To make this work properly, we have to include the script "AttackWindpowData.cs" correctly too
 /// bc that script work directly dependent to this script
 /// </summary>
 public class PlayerAttackState : PlayerBaseState
 {
-    private float _attackWindowStart;
-    private float _attackWindowEnd;
-    private float _allowBufferWindow;
+    // chain attack
+    private float _chainAttackWindowStart;
+    private float _chainAttackWindowEnd;
+    private float _allowDataWindow;
     private bool _chainAttackImmediately;
-    private bool _isAttackBuffer;
+    private bool _isAttackData;
     private bool _allowChainAttack;
+    // hitbox
+    private float _hitboxStart;
+    private float _hitboxEnd;
+    private bool _enableHitboxOnlyOnce;
+    private bool _disableHitboxOnlyOnce;
+    // etc
     private float _t;
 
     public PlayerAttackState(PlayerStateMachine ctx, PlayerStateFactory playerStateFactory) : base(ctx, playerStateFactory)
     {
         _isRoot = false;
         _chainAttackImmediately = false;
-        _isAttackBuffer = false;
+        _isAttackData = false;
         _allowChainAttack = false;
+        _enableHitboxOnlyOnce = false;
+        _disableHitboxOnlyOnce = false;
     }
 
     /// <summary>
-    /// make isAttackBuffer && AttackID correct to the next attack transition's condition
+    /// make isAttackData && AttackID correct to the next attack transition's condition
     /// so animation start 
     /// </summary>
     public override void EnterState()
@@ -34,20 +43,22 @@ public class PlayerAttackState : PlayerBaseState
         _ctx.Animator.SetBool(_ctx.IsAttackEndHash, false);
 
         // get window timing for this current AttackID + guard
-        if (_ctx.Weapon.Buffer.AttackWindows.Length > _ctx.AttackIDValue)
+        if (_ctx.Weapon.Data.AttackDatas.Length > _ctx.AttackIDValue)
         {
-            _attackWindowStart = _ctx.Weapon.Buffer.AttackWindows[_ctx.AttackIDValue].start;
-            _attackWindowEnd = _ctx.Weapon.Buffer.AttackWindows[_ctx.AttackIDValue].end;
+            _chainAttackWindowStart = _ctx.Weapon.Data.AttackDatas[_ctx.AttackIDValue].chainStart;
+            _chainAttackWindowEnd = _ctx.Weapon.Data.AttackDatas[_ctx.AttackIDValue].chainEnd;
+            _hitboxStart = _ctx.Weapon.Data.AttackDatas[_ctx.AttackIDValue].hitboxStart;
+            _hitboxEnd = _ctx.Weapon.Data.AttackDatas[_ctx.AttackIDValue].hitboxEnd;
         }
         else
         {
             Debug.LogError("AttackID: " + _ctx.AttackIDValue);
         }
 
-        // get allowBufferWindow for current AttackID
-        _allowBufferWindow = Mathf.Max(0f, _attackWindowStart - 0.3f);
+        // get allowDataWindow for current AttackID
+        _allowDataWindow = Mathf.Max(0f, _chainAttackWindowStart - 0.3f);
 
-        Debug.Log("AttackID: " + _ctx.AttackIDValue);
+        LockMovementWhileAttack(true);
     }
 
     /// <summary>
@@ -61,15 +72,18 @@ public class PlayerAttackState : PlayerBaseState
         // t should update every frame
         _t = _ctx.Animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
 
-        IsAllowChainAttack();
+        _ctx.BufferInput.CanRollBuffer(this);
 
-        LockMovementWhileAttack();
+        EnableHitbox();
+
+        IsAllowChainAttack();
 
         CheckSwitchState();
     }
+
     public override void ExitState()
     {
-        bool IfFinalAttack = !(_ctx.Weapon.Buffer.AttackWindows.Length > _ctx.AttackIDValue + 1);
+        bool IfFinalAttack = !(_ctx.Weapon.Data.AttackDatas.Length > _ctx.AttackIDValue + 1);
 
         // if not chain-attack mean transition to other state (ex. idle, move), reset attackID to 0
         // if attack is finish (no combo available), also exit the attack state
@@ -84,33 +98,43 @@ public class PlayerAttackState : PlayerBaseState
         {
             // increment AttackID, to make it transition to next-attack
             _ctx.Animator.SetInteger(_ctx.AttackIDHash, _ctx.AttackIDValue + 1);
-            Debug.Log("chain attack immedi");
+            // Debug.Log("chain attack immedi");
         }
 
         // reset movement lock
-        _ctx.MovementLock = false;
+        LockMovementWhileAttack(false);
+
+        // reset roll buffer
+        _ctx.BufferInput.IsRollBuffer = false;
     }
+
     public override void CheckSwitchState()
     {
-        bool cancelAnimationToMovement = IsInAttackState() && (_t >= _attackWindowEnd);
+        bool cancelAnimationToRoll = IsInAttackState() && (_t >= _chainAttackWindowEnd - 0.2f);
+        bool cancelAnimationToMovement = IsInAttackState() && (_t >= _chainAttackWindowEnd);
         bool attackAnimationIsOver = IsInAttackState() && (_t >= 1f) && !_ctx.Animator.IsInTransition(0);
-        bool animatorIsInTransitionToOtherState = !IsInAttackState() && _ctx.Animator.IsInTransition(0);
 
         // if player want to chain-attack, exit the old-attack first then enter new-attack
         if (_chainAttackImmediately) SwitchState(_factory.Attack());
 
+        else if (cancelAnimationToMovement && _ctx.BufferInput.IsRollBuffer)
+        {
+            SwitchState(_factory.Roll());
+        }
+
         else if (cancelAnimationToMovement && _ctx.IsMovementPressed)
         {
             SwitchState(_factory.Move());
-            Debug.Log("changing from attack to move => " + " t: " + _t + " isInAttackState: " + IsInAttackState());
+            // Debug.Log("changing from attack to move => " + " t: " + _t + " isInAttackState: " + IsInAttackState());
         }
 
         else if ((attackAnimationIsOver) && !_ctx.IsMovementPressed)
         {
             SwitchState(_factory.Idle());
-            Debug.Log("changing from attack to Idle");
+            // Debug.Log("changing from attack to Idle");
         }
     }
+
     public override void InitializeSubState() { }
 
     private void IsAllowChainAttack()
@@ -118,22 +142,29 @@ public class PlayerAttackState : PlayerBaseState
         bool animatorNotInTransition = !_ctx.Animator.IsInTransition(0);
 
         // chain-attack when AllowChainAttack and Attack is buffered
-        if (_allowChainAttack && _isAttackBuffer)
+        if (_allowChainAttack && _isAttackData)
         {
             _chainAttackImmediately = true;
         }
 
         // allow buffer-window
-        if (animatorNotInTransition && (_t >= _allowBufferWindow && _t <= _attackWindowEnd) && _ctx.IsAttackPressed) { _isAttackBuffer = true; Debug.Log("Attack is buffer"); }
+        if (animatorNotInTransition && (_t >= _allowDataWindow && _t <= _chainAttackWindowEnd) && _ctx.IsAttackPressed) { _isAttackData = true; }
 
         // allow chain-attack if timing is correct
-        if (animatorNotInTransition && (_t >= _attackWindowStart && _t <= _attackWindowEnd)) { _allowChainAttack = true; }
+        if (animatorNotInTransition && (_t >= _chainAttackWindowStart && _t <= _chainAttackWindowEnd)) { _allowChainAttack = true; }
     }
 
-    private void LockMovementWhileAttack()
+    private void EnableHitbox()
+    {
+        if ((_t >= _hitboxStart && _t < _hitboxEnd) && !_enableHitboxOnlyOnce) { _ctx.Weapon.Hitbox.EnableHitbox(); _enableHitboxOnlyOnce = true; }
+
+        else if (_t >= _hitboxEnd && !_disableHitboxOnlyOnce) { _ctx.Weapon.Hitbox.DisableHitbox(); _disableHitboxOnlyOnce = true; }
+    }
+
+    private void LockMovementWhileAttack(bool value)
     {
         // lock the player from moving
-        _ctx.MovementLock = true;
+        _ctx.MovementLock = value;
 
     }
 
@@ -145,4 +176,6 @@ public class PlayerAttackState : PlayerBaseState
         AnimatorStateInfo stateInfo = _ctx.Animator.GetCurrentAnimatorStateInfo(layerIndex);
         return stateInfo.IsTag("Attack");
     }
+
+
 }

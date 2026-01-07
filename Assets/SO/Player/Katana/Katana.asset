@@ -13,10 +13,16 @@ MonoBehaviour:
   m_Name: Katana
   m_EditorClassIdentifier: 
   animationName: 0
-  attackWindows:
-  - start: 0.62222224
-    end: 0.9
-  - start: 0.72
-    end: 0.9
-  - start: 0.6849315
-    end: 0.9
+  attackData:
+  - chainStart: 0.6
+    chainEnd: 0.9
+    hitboxStart: 0.333
+    hitboxEnd: 0.444
+  - chainStart: 0.6
+    chainEnd: 0.9
+    hitboxStart: 0.4
+    hitboxEnd: 0.54
+  - chainStart: 0.6
+    chainEnd: 0.9
+    hitboxStart: 0.5
+    hitboxEnd: 0.567

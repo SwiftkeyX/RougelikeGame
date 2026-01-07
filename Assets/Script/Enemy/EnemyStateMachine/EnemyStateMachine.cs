@@ -7,7 +7,6 @@ using UnityEngine.AI;
 public class EnemyStateMachine : MonoBehaviour
 {
     // dependency
-    private Brain _brain;
     private CharacterController _characterController;
     private Animator _animator;
     private NavMeshAgent _agent;
@@ -15,6 +14,7 @@ public class EnemyStateMachine : MonoBehaviour
     private EnemyStateFactory _factory;
     private StateMachineHelper _helper;
     private GizmoContext _gizmoContext;
+    private Weapon _weapon;
     [SerializeField] private EnemyStat _stat;
 
     // statemachine
@@ -32,14 +32,10 @@ public class EnemyStateMachine : MonoBehaviour
     // grounded state
     public float _minimalJumpTime = 0.5f; // this is GroundedBuffer (prevent state's change from Grounded to Jump every frame)
     private float _lastGroundedTime;
-    // Grounded Check Gizmo Var  
     private Vector3 _sphereOrigin;
     private float _groundedSphereRadius;
     private float _groundCheckDistance;
     private float _groundCheckStartOffset;
-
-    // combat var
-    private bool _attackEnd;
 
     // room var
     public bool _detectPlayer;
@@ -53,8 +49,10 @@ public class EnemyStateMachine : MonoBehaviour
     int _isJumpHash;
     int _isAttackHash;
     int _attackID;
+    int _isAttackEndHash;
 
-    // getter and setter
+    // ==================================== getter and setter ===============================================
+    // dependency
     public EnemyBaseState CurrentState { get { return _currentState; } set { _currentState = value; } }
     public NavMeshAgent Agent { get { return _agent; } }
     public CharacterController CharacterController { get { return _characterController; } }
@@ -62,12 +60,17 @@ public class EnemyStateMachine : MonoBehaviour
     public Animator Animator { get { return _animator; } }
     public StateMachineHelper Helper { get { return _helper; } }
     public EnemyStat EnemyStat { get { return _stat; } }
+    public Weapon Weapon { get { return _weapon; } }
+    // agent
     public void AgentSetDes(Vector3 pos) { _agent.SetDestination(pos); }
     public Vector3 CalculatePath() { return _agent.desiredVelocity; }
     public void AgentUpdateCurrentPosition() { _agent.nextPosition = transform.position; }
+    public bool IsAgentStop { get { return _isAgentStop; } set { _isAgentStop = value; } } // flag to tell that agent is stop or not
+    // movement
     public Vector3 PlayerPosition { get { return _playerTransform.position; } }
     public Vector3 CurrentMovement { get { return _currentMovement; } set { _currentMovement = value; } }
     public float CurrentMovementY { get { return _currentMovement.y; } set { _currentMovement.y = value; } }
+    // animator hash
     public int IsWalkingHash { get { return _isWalkingHash; } }
     public int IsForwardWalkingHash { get { return _isForwardWalkingHash; } }
     public int IsLeftWalkingHash { get { return _isLeftWalkingHash; } }
@@ -75,13 +78,14 @@ public class EnemyStateMachine : MonoBehaviour
     public int IsJumpHash { get { return _isJumpHash; } }
     public int IsAttackHash { get { return _isAttackHash; } }
     public int AttackID { get { return _attackID; } }
+    public int IsAttackEndHash { get { return _isAttackEndHash; } }
+    // enemy's condition var
     public bool Alert { get { return _alert; } set { _alert = value; } }
     public bool DetectPlayer { get { return _detectPlayer; } }
+    // jump state
     public float MinimalJumpTime { get { return _minimalJumpTime; } }
     public float LastGroundedTime { get { return _lastGroundedTime; } set { _lastGroundedTime = value; } }
-    public float AttackRange { get { return 1f; } }
-    public bool AttackEnd { get { return _attackEnd; } set { _attackEnd = value; } }
-    public bool IsAgentStop { get { return _isAgentStop; } set { _isAgentStop = value; } }
+    // ground state
     public LayerMask GroundLayer { get { return _groundLayer; } }
     public Vector3 SphereOrigin { get { return _sphereOrigin; } set { _sphereOrigin = value; } }
     public float GroundCheckStartOffset { get { return _groundCheckStartOffset; } }
@@ -91,13 +95,13 @@ public class EnemyStateMachine : MonoBehaviour
     void Awake()
     {
         // Initial dependency
-        _brain = new Brain();
         _factory = new EnemyStateFactory(this);
         _characterController = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
         _agent = GetComponent<NavMeshAgent>();
         _helper = new StateMachineHelper(this);
         _gizmoContext = GetComponent<GizmoContext>();
+        _weapon = GetComponent<Weapon>();
 
         // get player transform
         _playerTransform = GameObject.FindWithTag("Player").transform;
@@ -110,6 +114,7 @@ public class EnemyStateMachine : MonoBehaviour
         _isJumpHash = Animator.StringToHash("isJump");
         _isAttackHash = Animator.StringToHash("isAttack");
         _attackID = Animator.StringToHash("attackID");
+        _isAttackEndHash = Animator.StringToHash("isAttackEnd");
 
         // layermask
         _groundLayer = LayerMask.GetMask("Ground");
@@ -117,7 +122,7 @@ public class EnemyStateMachine : MonoBehaviour
         // Initial Ground Check var
         InitialGroundedCheck();
     }
-    
+
     private void InitialGroundedCheck()
     {
         _groundCheckDistance = 0.2f;
@@ -149,11 +154,11 @@ public class EnemyStateMachine : MonoBehaviour
         _currentState.UpdateStates();
 
         // // test  
-        // Debug.Log(
-        //     "FirstState: " + _currentState +
-        //     " SecondState: " + (_currentState?.CurrentSubState?.ToString() ?? "null") +
-        //     " ThirdState: " + (_currentState?.CurrentSubState?.CurrentSubState?.ToString() ?? "null")
-        // );
+        Debug.Log(
+            "FirstState: " + _currentState +
+            " SecondState: " + (_currentState?.CurrentSubState?.ToString() ?? "null") +
+            " ThirdState: " + (_currentState?.CurrentSubState?.CurrentSubState?.ToString() ?? "null")
+        );
         // Debug.Log("CurrentMovementY: " + CurrentMovementY);
     }
 
@@ -173,9 +178,5 @@ public class EnemyStateMachine : MonoBehaviour
         // if (_isMovementPressed) 
         transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, _stat.RotationPerFrame * Time.deltaTime);
     }
-
-    // Event Handler (Behaviour script attach to Attack State)
-    public void OnAttackStart() => _attackEnd = false;
-    public void OnAttackFinish() => _attackEnd = true;
 
 }

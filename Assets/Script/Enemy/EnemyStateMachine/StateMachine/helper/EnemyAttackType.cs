@@ -15,6 +15,7 @@ public class EnemyAttackType
     public float damage;
     public float maxCooldown;
     public float range;
+    public AttackData attackData;
 }
 
 [CreateAssetMenu(fileName = "EnemyAttackData", menuName = "SO/Enemy/EnemyAttackData")]
