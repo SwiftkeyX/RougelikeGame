@@ -3658,7 +3658,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _currentHealth: 100
   _maxHealth: 100
-  _enemyAttackdata: {fileID: 11400000, guid: 1a672e1c7c54cd343a6f78eb24297551, type: 2}
+  _enemyAttackdata: {fileID: 11400000, guid: def6f11f7c96d5d45ab6a650c410bc4e, type: 2}
   _speedPerFrame: 0.5
   _rotationPerFrame: 15
 --- !u!114 &8799400606099933166

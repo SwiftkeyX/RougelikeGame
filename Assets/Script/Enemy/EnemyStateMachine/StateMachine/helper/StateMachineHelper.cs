@@ -144,7 +144,7 @@ public class StateMachineHelper
             yield return null;
         }
 
-        // reset _attackChoose after finish the cooldown (only if attack isn't changed)
+        // reset _attackChoose after finish the cooldown (only if _attackChoose isn't changed)
         if (attack == _attackChoose) _attackChoose = null;
     }
 

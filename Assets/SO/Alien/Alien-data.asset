@@ -13,32 +13,32 @@ MonoBehaviour:
   m_Name: Alien-data
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAttackData
   Light:
-    damage: 0
-    maxCooldown: 0
-    range: 0
+    damage: 10
+    maxCooldown: 5
+    range: 3
     attackData:
       chainStart: 0
       chainEnd: 0
-      hitboxStart: 0
-      hitboxEnd: 0
+      hitboxStart: 0.3287671
+      hitboxEnd: 0.4109589
   Heavy:
-    damage: 0
-    maxCooldown: 0
-    range: 0
+    damage: 30
+    maxCooldown: 5
+    range: 3
     attackData:
       chainStart: 0
       chainEnd: 0
-      hitboxStart: 0
-      hitboxEnd: 0
+      hitboxStart: 0.43037975
+      hitboxEnd: 0.5949367
   Special:
-    damage: 0
-    maxCooldown: 0
-    range: 0
+    damage: 50
+    maxCooldown: 15
+    range: 12
     attackData:
       chainStart: 0
       chainEnd: 0
-      hitboxStart: 0
-      hitboxEnd: 0
+      hitboxStart: 0.6082474
+      hitboxEnd: 0.6701031
   GapCloser:
     damage: 0
     maxCooldown: 0
